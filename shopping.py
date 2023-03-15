@@ -33,10 +33,10 @@ def main():
 
 
 def load_data(filename):
-    evidence=[]
-    labels=[]
+    evidence = []
+    labels = []
     with open(filename) as f:
-        reader= csv.reader(f)
+        reader = csv.reader(f)
         next(reader)
         for row in reader:
             administrative = int(row[0])
@@ -49,46 +49,50 @@ def load_data(filename):
             exit_rates = float(row[7])
             page_values = float(row[8])
             special_day = float(row[9])
-            month = ['Jan','Feb','Mar','Apr','May','June','Jul','Aug','Sep','Oct','Nov','Dec'].index(row[10])
+            month = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'June', 'Jul',
+                     'Aug', 'Sep', 'Oct', 'Nov', 'Dec'].index(row[10])
             operating_systems = int(row[11])
             browser = int(row[12])
             region = int(row[13])
             traffic_type = int(row[14])
             visitor_type = int(row[15] == 'Returning_Visitor')
-            weekend = int(row[16] == 'TRUE')
+            weekend = 1 if row[16] == 'TRUE' else 0
             evidence.append([
-                administrative, administrative_duration, informational, informational_duration, 
-                product_related, product_related_duration, bounce_rates, exit_rates, page_values, 
+                administrative, administrative_duration, informational, informational_duration,
+                product_related, product_related_duration, bounce_rates, exit_rates, page_values,
                 special_day, month, operating_systems, browser, region, traffic_type, visitor_type, weekend
             ])
 
-            labels.append(int(row[-1]))
+            labels.append(1 if row[-1] == 'TRUE' else 0)
     return (evidence, labels)
 
 
 def train_model(evidence, labels):
-   
-    model=KNeighborsClassifier(n_neighbors=1)
+
+    model = KNeighborsClassifier(n_neighbors=1)
     model.fit(evidence, labels)
     return model
 
 
 def evaluate(labels, predictions):
-    """
-    Given a list of actual labels and a list of predicted labels,
-    return a tuple (sensitivity, specificity).
 
-    Assume each label is either a 1 (positive) or 0 (negative).
-
-    `sensitivity` should be a floating-point value from 0 to 1
-    representing the "true positive rate": the proportion of
-    actual positive labels that were accurately identified.
-
-    `specificity` should be a floating-point value from 0 to 1
-    representing the "true negative rate": the proportion of
-    actual negative labels that were accurately identified.
-    """
-    raise NotImplementedError
+    # Compute how well we performed
+    tp = 0
+    fn = 0
+    fp = 0
+    tn = 0
+    for actual, predicted in zip(labels, predictions):
+        if actual == 1 and predicted == 1:
+            tp += 1
+        elif actual == 1 and predicted == 0:
+            fn += 1
+        elif actual == 0 and predicted == 1:
+            fp += 1
+        elif actual == 0 and predicted == 0:
+            tn += 1
+    sensitivty = float(tp/(tp+fn))
+    specificty = float(tn/(tn+fp))
+    return (sensitivty, specificty)
 
 
 if __name__ == "__main__":
